@@ -34,16 +34,42 @@ Kubernetes provides liveness and readiness probes that are used to check the hea
 
 ## Getting started
 
-- Open Eclipse IDE
+- Open Eclipse IDE:
 
-- Find and Install IBM Liberty Developer Tools for building and deploying JEE apps to OpenLiberty:
-    - Open Eclipse Marketplace -> Menu->Help->Eclipse Marketplace
-    - Find Liberty package -> Write `Liberty` in `Find` field and click `Go` button
-    - Install Liberty Developer Tools 19.0.0.3 -> Select appropriate package from the list and click `Install` button
-    - Restart eclipse
+![Eclipse desktop icon](./images/eclipse-icon.png)
+
+Find and Install IBM Liberty Developer Tools for building and deploying JEE apps to OpenLiberty:
+
+
+- Open Eclipse Marketplace: Menu->Help->Eclipse Marketplace:
+![Eclipse marketplace](./images/eclipse-marketplace-menu.png)
+
+- Find Liberty package: Write `Liberty` in `Find` field and click `Go` button:
+![Liberty tools install STEP1](./images/eclipse-marketplace-libertytools-install.png)
+
+- Install Liberty Developer Tools 19.0.0.3 -> Select appropriate package from the list and click `Install` button:
+![Liberty tools install STEP2](./images/eclipse-marketplace-libertytools-packages-selection.png)
+
+- RESTART ECLIPSE
+
+
 
 
 ## Download and Import projects into your workspace
+
+You can use git to clone repository or download it directly from github: `https://github.com/albert-haliulov/microprofile-healthcheck`
+![Git repo](./images/git-repo.png)
+
+````
+$ git clone https://github.com/albert-haliulov/microprofile-healthcheck.git
+Cloning into 'microprofile-healthcheck'...
+remote: Enumerating objects: 76, done.
+remote: Counting objects: 100% (76/76), done.
+remote: Compressing objects: 100% (49/49), done.
+remote: Total 76 (delta 9), reused 76 (delta 9), pack-reused 0
+Unpacking objects: 100% (76/76), done.
+````
+
 
 File->Import->Project Interchange
 
@@ -111,6 +137,15 @@ public class PingHealth implements HealthCheck {
 ## Build applications Name and Ping
 
 >>>> TODO - add screenshots about how to build an application.
+
+By default all projects build automatically.
+![Build Automatically](./images/app-build-automatically.png)
+
+We need to export web applications in order to deploy and to use in further steps. Do it for both applications.
+![Export application as a WAR file STEP1](./images/app-export-warfile-st1.png)
+
+Save file inside the appropriate application folder. Use name.war for Name app, ping.war for Ping application. Check box `Overwrite existing file` if the file with same name exists.
+![Export application as a WAR file STEP2](./images/app-export-warfile-st2.png)
 
 ## Play with app
 
