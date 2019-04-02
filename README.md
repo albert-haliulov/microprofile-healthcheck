@@ -47,9 +47,8 @@ Kubernetes provides liveness and readiness probes that are used to check the hea
 
 File->Import->Project Interchange
 
-## Play with applications
- >>>>>> Here need to put part to Look at the source code and play with apps deploying into Liberty servers - name-serer & ping-server respectively <<<<<
-
+## Adding a health check to the ping microservice
+ 
 The two microservices you will work with are called `name` and `ping`. The `name` microservice displays a brief greeting and the name of the container that it runs in. The `ping` microservice pings the Kubernetes Service that encapsulates the pod running the `name` microservice. The `ping` microservice demonstrates how communication can be established between pods inside a cluster.
 
 The `ping` microservice should only be healthy when `name` is available. To add this check to the `/health` endpoint, you will create a class implementing the `HealthCheck` interface.
@@ -109,10 +108,15 @@ public class PingHealth implements HealthCheck {
 }
 ````
 
-This health check verifies that the `name` microservice is available at `http://name-service:9080/api`. The `name-service` host name is only accessible from inside the cluster, you can’t access it yourself. If it’s available, then it returns an `UP` status. Similarly, if it’s unavailable then it returns a `DOWN` status. When the status is `DOWN` the microservice is considered to be unhealthy.
+## Build applications Name and Ping
+
+>>>> TODO - add screenshots about how to build an application.
+
+## Play with app
+
+This health check verifies that the `name` microservice is available at `http://localhost:9081/api`. If it’s available, then it returns an `UP` status. Similarly, if it’s unavailable then it returns a `DOWN` status. When the status is `DOWN` the microservice is considered to be unhealthy.
 
 The health check for the `name` microservice has already been implemented. It has been setup to become unhealthy for 60 seconds when a specific endpoint is called. This endpoint has been provided for you to observe the results of an unhealthy pod and how Kubernetes reacts.
-
 
 
 ````
@@ -154,11 +158,6 @@ ERROR: Service is currently in maintenance.
 $ curl -X GET http://localhost:9081/health
 {"checks":[{"data":{},"name":"localhost","state":"DOWN"}],"outcome":"DOWN"}
 ````
-
-
-## Build applications Name and Ping
-
-
 
 ## Build docker images
 
