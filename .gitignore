@@ -1,0 +1,8 @@
+.DS_Store
+.project
+.metadata
+*.war
+.settings/
+.classpath
+
+
