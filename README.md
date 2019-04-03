@@ -21,6 +21,8 @@ Kubernetes provides liveness and readiness probes that are used to check the hea
 - **Git client**
     - MacOS X: https://git-scm.com/download/mac
     - Linux/Unix: https://git-scm.com/download/linux
+- **Curl**
+    - Download and install curl: https://curl.haxx.se/download.html
 - **Eclispe**
     - Download and install Eclipse IDE for Enterprise Java Developers: https://www.eclipse.org/downloads/packages/
 - **OpenLiberty**
@@ -265,7 +267,7 @@ Run docker containers from prepared images with `name` and `ping` services. In o
 
 Docker Compose is a tool for defining and running multi-container Docker applications. It uses YAML files to configure the application's services and performs the creation and start-up process of all the containers with a single command.
 
-Let's look at `docker-compose.yaml`:
+Look at `docker-compose.yaml`:
 
 ````
 version: '3'
@@ -333,7 +335,7 @@ $ curl -X GET http://localhost:9081/api/ping/name-service
 pong
 ````
 
-And check the healthcheck stuff, that it is working in containers before we deploy it to kubernetes:
+And check the healthcheck stuff. Does it work in containers before deploy to kubernetes?
 
 ````
 $ curl -X GET http://localhost:9080/health
@@ -408,7 +410,7 @@ We exposed our service endpoints by NodePort. Every worker node starts listening
 The following diagram shows how communication is directed from the internet to an app when a NodePort service is configured:
 ![K8s nodeport routing schema](./images/k8s-service-nodeport-route.png)
 
-To get public IP address for the Worker node, open the IBM Cloud console and select on Dashboard the Kubernetes Clusters resource. After you can chose your claster `mycluster` and open Worker Nodes tab on the management console. The Public IP will be in the appropriate field of the Worker Node row:
+To get public IP address for the Worker node, open the IBM Cloud console and select on Dashboard the Kubernetes Clusters resource. Then you can choose your cluster `mycluster` and open Worker Nodes tab on the management console. The Public IP will be in the appropriate field of the Worker Node row:
 ![K8s worker public IP](./images/k8s-worker-public-ip.png)
 
 Use this public IP adress to invoke your services:
@@ -458,14 +460,14 @@ name-deployment-6797df5b88-bgn2m   1/1       Running   0          1m
 ping-deployment-685445548f-9nlw8   1/1       Running   0          1m
 ````
 
-Navigate to `http://<Public_IP_Address>:31000/api/name` and observe a response similar to `Hello! I'm container name-deployment-6797df5b88-bgn2m`. Replace `<Public_IP_Address>` with the public IP address of Worker Node. The readiness probe ensures the READY state won’t be `1/1` until the container is available to accept requests. Without a readiness probe, you may notice an unsuccessful response from the server. This scenario can occur when the container has started, but the application server hasn’t fully initialized. With the readiness probe, you can be certain the pod will only accept traffic when the microservice has fully started.
+Navigate to `http://<Public_IP_Address>:31000/api/name` and observe a response similar to `Hello! I'm container name-deployment-6797df5b88-bgn2m`. The readiness probe ensures the READY state won’t be `1/1` until the container is available to accept requests. Without a readiness probe, you may notice an unsuccessful response from the server. This scenario can occur when the container has started, but the application server hasn’t fully initialized. With the readiness probe, you can be certain the pod will only accept traffic when the microservice has fully started.
 
 Similarly, navigate to `http://<Public_IP_Address>:32000/api/ping/name-service` and observe a response with the content `pong`.
 
 
-## Changing the ready state of the name microservice
+## Changing the ready state of the `name` microservice
 
-An endpoint has been provided under the `name` microservice to set it to an unhealthy state in the health check. The unhealthy state will cause the readiness probe to fail. Use the `curl` command to invoke this endpoint by making a POST request to `http://<Public_IP_Address>:31000/api/name/unhealthy`.
+An endpoint has been provided under the `name` microservice to set it to an unhealthy state in the health check. The unhealthy state will cause the readiness probe to fail. Invoke this endpoint by making a POST request to `http://<Public_IP_Address>:31000/api/name/unhealthy`.
 
 ````
 $ curl -X POST http://<Public_IP_Address>:31000/api/name/unhealthy
@@ -482,7 +484,7 @@ ping-deployment-685445548f-9nlw8   1/1       Running   0          15m
 ````
 You will notice that one of the two name pods is no longer in the ready state. Navigate to `http://<Public_IP_Address>:31000/api/name`. Observe that your request will still be successful because you have two replicas and one is still healthy.
 
-## Observing the effects on the ping microservice
+## Observing the effects on the `ping` microservice
 
 Wait until the `name` pod is ready again. Make two POST requests to `http://<Public_IP_Address>:31000/api/name/unhealthy`. If you see the same pod name twice, make the request again until you see that the second pod has been made unhealthy. You may see the same pod twice because there’s a delay between a pod becoming unhealthy and the readiness probe noticing it. Therefore, traffic may still be routed to the unhealthy service for approximately 5 seconds. Continue to observe the output of `kubectl get pods`. You will see both pods are no longer ready. During this process, the readiness probe for the `ping` microservice will also fail. Observe it’s no longer in the ready state either.
 ````
