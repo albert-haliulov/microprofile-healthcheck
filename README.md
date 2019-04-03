@@ -42,17 +42,20 @@ Find and Install IBM Liberty Developer Tools for building and deploying JEE apps
 
 
 - Open Eclipse Marketplace: Menu->Help->Eclipse Marketplace:
+
 ![Eclipse marketplace](./images/eclipse-marketplace-menu.png)
 
 - Find Liberty package: Write `Liberty` in `Find` field and click `Go` button:
+
 ![Liberty tools install STEP1](./images/eclipse-marketplace-libertytools-install.png)
 
 - Install Liberty Developer Tools 19.0.0.3 -> Select appropriate package from the list and click `Install` button:
+
 ![Liberty tools install STEP2](./images/eclipse-marketplace-libertytools-packages-selection.png)
 
 - RESTART ECLIPSE
 
-
+## Configure Liberty runtime
 
 
 ## Download and Import projects into your workspace
@@ -69,9 +72,16 @@ remote: Compressing objects: 100% (49/49), done.
 remote: Total 76 (delta 9), reused 76 (delta 9), pack-reused 0
 Unpacking objects: 100% (76/76), done.
 ````
+Change Eclipse workspace to directory where you unpacked `microprofile-healtcheck` repo: File->Switch Workspace->Other
 
+![Eclipse change workspace](./images/eclipse-workspace.png)
 
-File->Import->Project Interchange
+And import eclipse artifactes from project.zip file:
+![Import arctifacts STEP1](./images/import-project-st1.png)
+
+![Import arctifacts STEP1](./images/import-project-st2.png)
+
+![Import arctifacts STEP1](./images/import-project-st3.png)
 
 ## Adding a health check to the ping microservice
  
@@ -79,7 +89,7 @@ The two microservices you will work with are called `name` and `ping`. The `name
 
 The `ping` microservice should only be healthy when `name` is available. To add this check to the `/health` endpoint, you will create a class implementing the `HealthCheck` interface.
 
->>>Create PingHealth class.
+>Create PingHealth class.
 io/openliberty/guides/ping/PingHealth.java
 ````
 package io.openliberty.guides.ping;
@@ -136,15 +146,16 @@ public class PingHealth implements HealthCheck {
 
 ## Build applications Name and Ping
 
->>>> TODO - add screenshots about how to build an application.
+By default all projects build automatically:
 
-By default all projects build automatically.
 ![Build Automatically](./images/app-build-automatically.png)
 
 We need to export web applications in order to deploy and to use in further steps. Do it for both applications.
+
 ![Export application as a WAR file STEP1](./images/app-export-warfile-st1.png)
 
-Save file inside the appropriate application folder. Use name.war for Name app, ping.war for Ping application. Check box `Overwrite existing file` if the file with same name exists.
+Save file inside the appropriate application folder. Use `name.war` for Name app, `ping.war` for Ping application. Check box `Overwrite existing file` if the file with same name exists.
+
 ![Export application as a WAR file STEP2](./images/app-export-warfile-st2.png)
 
 ## Play with app
@@ -196,7 +207,15 @@ $ curl -X GET http://localhost:9081/health
 
 ## Build docker images
 
-Build `name:1.0` image with `Name` service
+We supplied Dockerfiles for creating `name` and `ping` images. They are located in the application folders. Explore one of them:
+````
+FROM open-liberty
+
+COPY --chown=1001:0 server.xml /config
+COPY --chown=1001:0 *.war /config/apps/name.war
+````
+
+Build `name:1.0` image:
 
 ````
 $ cd Name/
@@ -212,7 +231,7 @@ Step 3/3 : COPY --chown=1001:0 *.war /config/apps/name.war
 Successfully built 30e2bec82e9f
 Successfully tagged name:1.0
 ````
-Build `ping:1.0` image with `Ping` service
+Build `ping:1.0` image:
 
 ````
 $ cd Ping/
@@ -229,7 +248,7 @@ Successfully built a9868d823b4b
 Successfully tagged ping:1.0
 ````
 
-Check that images have been created:
+Check for images have been created:
 
 ````
 $ docker images
@@ -238,7 +257,7 @@ name                                     1.0                 7c3773c712a7       
 ping                                     1.0                 fea53a6caf11        16 hours ago        535MB
 ````
 
-Now we are ready for the next step - run our containers.
+Now we are ready for the next step - run containers.
 
 ## Run & Play with docker containers
 
@@ -300,7 +319,7 @@ a814a31c2cbc        name:1.0            "/opt/ol/helpers/run…"   29 seconds ag
 
 ````
 
-Now you can play with services:
+Now you can play with our services:
 
 Notice that our `name-service` responing as a container, not an application as was before. Check the application class `io.openliberty.guides.name.NameResource` to understand this behaviour. 
 ````
@@ -333,7 +352,7 @@ $ curl -X GET http://localhost:9081/health
 {"checks":[{"data":{},"name":"name-service","state":"DOWN"}],"outcome":"DOWN"}
 ````
 
-Wait a minute in order to `name-service` returned from maintenance state and check health again:
+Wait 60 seconds in order to `name-service` returned from maintenance state and check health again:
 ````
 $ curl -X GET http://localhost:9081/api/ping/name-service
 pong
@@ -344,35 +363,69 @@ curl -X GET http://localhost:9081/health
 
 We have done it. 
 
-Let's deploy it to kubernetes now and check readiness Probe how it can handle healthcheck of our services.
+Let's deploy it to Kubernetes and check readinessProbe how it can handle healthcheck of our services.
 
-## Creating and preparing your cluster for deployment
+## Creating cluster and preparing your environment for deployment
 
-Go through the IBM Cloud Kubernetes Service tutorial `https://cloud.ibm.com/docs/containers?topic=containers-cs_cluster_tutorial#cs_cluster_tutorial` for creating a Kubernetes cluster, installing the CLI, creating a private registry and setting up your cluster environment.
+If you have not created K8s cluster yet - now it's time to do that.  
+
+You can go through the [IBM Cloud Kubernetes Service tutorial](https://cloud.ibm.com/docs/containers?topic=containers-cs_cluster_tutorial#cs_cluster_tutorial) for creating a Kubernetes cluster, installing the CLI, creating a private registry and setting up your cluster environment.
+
+OR
+
+Use the following step-by-step [instruction](create-cluster-and-environment.md).
+
+## Deploying microservices into Kubernetes cluster
+
+First, we need to tag our images:
+````
+$ docker tag name:1.0 registry.eu-de.bluemix.net/microprofile/name:1.0
+$ docker tag ping:1.0 registry.eu-de.bluemix.net/microprofile/ping:1.0
+````
+Second, push them to private regisrty:
+````
+docker push registry.eu-de.bluemix.net/microprofile/name:1.0
+docker push registry.eu-de.bluemix.net/microprofile/ping:1.0
+````
+
+Third, use `kubernetes.yaml` to deploy application into your cluster.
+````
+kubectl apply -f kubernetes.yaml
+````
+
+Use the following command to view the status of the pods. There will be two `name` pods and one `ping` pod, later you’ll observe their behaviour as the `name` pods become unhealthy.
+````
+$ kubectl get pods
+NAME                               READY     STATUS    RESTARTS   AGE
+name-deployment-774555bf79-ftlxd   1/1       Running   0          3m
+name-deployment-774555bf79-k2cg5   1/1       Running   0          3m
+ping-deployment-89654df57-w9w2s    1/1       Running   0          3m
+````
+Wait until the pods are ready. After the pods are ready, you will make requests to your services.
+ 
+We exposed our service endpoints by NodePort. Every worker node starts listening on the assigned NodePort for incoming requests for the service. To access the service from the internet, you can use the public IP address of any worker node that was assigned during cluster creation and the NodePort in the format `<IP_address>:<nodeport>`.
+
+The following diagram shows how communication is directed from the internet to an app when a NodePort service is configured:
+![K8s nodeport routing schema](./images/k8s-service-nodeport-route.png)
+
+To get public IP address for the Worker node, open the IBM Cloud console and select on Dashboard the Kubernetes Clusters resource. After you can chose your claster `mycluster` and open Worker Nodes tab on the management console. The Public IP will be in the appropriate field of the Worker Node row:
+![K8s worker public IP](./images/k8s-worker-public-ip.png)
+
+Use this public IP adress to invoke your services:
+````
+$ curl -X GET http://<Public_IP_Address>:31000/api/name
+Hello! I'm container name-deployment-774555bf79-k2cg5
+
+$ curl -X GET http://<Public_IP_Address>:32000/api/ping/name-service
+pong
+````
 
 ## Configuring readiness probes
 
 Readiness probes are responsible for determining that your application is ready to accept requests. If it’s not ready, traffic won’t be routed to the container.
 
->>>>Create the kubernetes configuration file.
-kubernetes.yaml
+Edit `kubernetes.yaml` to add readinessProbes as it shown below. Do these changes for both services. You should get content as in already prepared file `kubernetes-readiness.yaml`.
 ````
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: name-deployment
-  labels:
-    app: name
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: name
-  template:
-    metadata:
-      labels:
-        app: name
-    spec:
       containers:
       - name: name-container
         image: name:1.0-SNAPSHOT
@@ -386,142 +439,73 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 5
           failureThreshold: 1
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ping-deployment
-  labels:
-    app: ping
-spec:
-  selector:
-    matchLabels:
-      app: ping
-  template:
-    metadata:
-      labels:
-        app: ping
-    spec:
-      containers:
-      - name: ping-container
-        image: ping:1.0-SNAPSHOT
-        ports:
-        - containerPort: 9081
-        env:
-        - name: NAME_HOSTNAME
-          value: name-service
-        # ping probe
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 9081
-          initialDelaySeconds: 15
-          periodSeconds: 5
-          failureThreshold: 1
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: name-service
-spec:
-  type: NodePort
-  selector:
-    app: name
-  ports:
-  - protocol: TCP
-    port: 9080
-    targetPort: 9080
-    nodePort: 31000
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ping-service
-spec:
-  type: NodePort
-  selector:
-    app: ping
-  ports:
-  - protocol: TCP
-    port: 9081
-    targetPort: 9081
-    nodePort: 32000
 ````
-
-Open `kubernetes.yaml` file and see - the readiness probes are configured for the containers running the `name` and `ping` microservices.
 
 The readiness probes are configured to poll the `/health` endpoint. The readiness probe determines the READY status of the container as seen in the `kubectl get pods` output. The `initialDelaySeconds` field defines how long the probe should wait before it starts to poll so the probe does not start making requests before the server has started. The `failureThreshold` option defines how many times the probe should fail before the state should be changed from ready to not ready. The `periodSeconds` option defines how often the probe should poll the given endpoint.
 
-## Deploying microservices into Kubernetes cluster
-
-Change path to root dirtectory of project - where kubernetes.yaml is located. Deploy application by using this chart.
+Deploy new changes by modified chart:
 
 ````
-kubectl apply -f kubernetes.yaml
+$ kubectl apply -f kubernetes-readiness.yaml 
 ````
 
-## Play with deployed application
->>>>>>Here need to put part - Play with deployed application
-
-Use the following command to view the status of the pods. There will be two name pods and one `ping` pod, later you’ll observe their behaviour as the `name` pods become unhealthy.
-
+Check the pods readiness again:
 ````
-$kubectl get pods
+$ kubectl get pods
 NAME                               READY     STATUS    RESTARTS   AGE
-name-deployment-694c7b74f7-hcf4q   1/1       Running   0          59s
-name-deployment-694c7b74f7-lrlf7   1/1       Running   0          59s
-ping-deployment-cf8f564c6-nctcr    1/1       Running   0          59s
+name-deployment-6797df5b88-8ns8j   1/1       Running   0          1m
+name-deployment-6797df5b88-bgn2m   1/1       Running   0          1m
+ping-deployment-685445548f-9nlw8   1/1       Running   0          1m
 ````
-Wait until the pods are ready. After the pods are ready, you will make requests to your services.
 
-Navigate to `http://[hostname]:31000/api/name` and observe a response similar to `Hello! I’m container name-deployment-5f868854bf-2rhdq`. Replace `[hostname]` with the IP address or host name of your Kubernetes cluster. The readiness probe ensures the READY state won’t be `1/1` until the container is available to accept requests. Without a readiness probe, you may notice an unsuccessful response from the server. This scenario can occur when the container has started, but the application server hasn’t fully initialized. With the readiness probe, you can be certain the pod will only accept traffic when the microservice has fully started.
+Navigate to `http://<Public_IP_Address>:31000/api/name` and observe a response similar to `Hello! I'm container name-deployment-6797df5b88-bgn2m`. Replace `<Public_IP_Address>` with the public IP address of Worker Node. The readiness probe ensures the READY state won’t be `1/1` until the container is available to accept requests. Without a readiness probe, you may notice an unsuccessful response from the server. This scenario can occur when the container has started, but the application server hasn’t fully initialized. With the readiness probe, you can be certain the pod will only accept traffic when the microservice has fully started.
 
-Similarly, navigate to `http://[hostname]:32000/api/ping/name-service` and observe a response with the content `pong`.
+Similarly, navigate to `http://<Public_IP_Address>:32000/api/ping/name-service` and observe a response with the content `pong`.
 
 
 ## Changing the ready state of the name microservice
 
-An endpoint has been provided under the `name` microservice to set it to an unhealthy state in the health check. The unhealthy state will cause the readiness probe to fail. Use the `curl` command to invoke this endpoint by making a POST request to `http://[hostname]:31000/api/name/unhealthy` — if `curl` is unavailable then use a tool such as **Postman**.
+An endpoint has been provided under the `name` microservice to set it to an unhealthy state in the health check. The unhealthy state will cause the readiness probe to fail. Use the `curl` command to invoke this endpoint by making a POST request to `http://<Public_IP_Address>:31000/api/name/unhealthy`.
 
 ````
-$ curl -X POST http://[hostname]:31000/api/name/unhealthy
-Application NameService is now unhealthy...
+$ curl -X POST http://<Public_IP_Address>:31000/api/name/unhealthy
+Container name-deployment-6797df5b88-bgn2m is now unhealthy...
 ````
 
 Run the following command to view the state of the pods:
 ````
-$ kubectl get pods
+$ $ kubectl get pods
 NAME                               READY     STATUS    RESTARTS   AGE
-name-deployment-694c7b74f7-hcf4q   1/1       Running   0          1m
-name-deployment-694c7b74f7-lrlf7   0/1       Running   0          1m
-ping-deployment-cf8f564c6-nctcr    1/1       Running   0          1m
+name-deployment-6797df5b88-8ns8j   1/1       Running   0          15m
+name-deployment-6797df5b88-bgn2m   0/1       Running   0          15m
+ping-deployment-685445548f-9nlw8   1/1       Running   0          15m
 ````
-You will notice that one of the two name pods is no longer in the ready state. Navigate to `http://[hostname]:31000/api/name`. Observe that your request will still be successful because you have two replicas and one is still healthy.
+You will notice that one of the two name pods is no longer in the ready state. Navigate to `http://<Public_IP_Address>:31000/api/name`. Observe that your request will still be successful because you have two replicas and one is still healthy.
 
 ## Observing the effects on the ping microservice
 
-Wait until the `name` pod is ready again. Make two POST requests to `http://[hostname]:31000/api/name/unhealthy`. If you see the same pod name twice, make the request again until you see that the second pod has been made unhealthy. You may see the same pod twice because there’s a delay between a pod becoming unhealthy and the readiness probe noticing it. Therefore, traffic may still be routed to the unhealthy service for approximately 5 seconds. Continue to observe the output of `kubectl get pods`. You will see both pods are no longer ready. During this process, the readiness probe for the `ping` microservice will also fail. Observe it’s no longer in the ready state either.
+Wait until the `name` pod is ready again. Make two POST requests to `http://<Public_IP_Address>:31000/api/name/unhealthy`. If you see the same pod name twice, make the request again until you see that the second pod has been made unhealthy. You may see the same pod twice because there’s a delay between a pod becoming unhealthy and the readiness probe noticing it. Therefore, traffic may still be routed to the unhealthy service for approximately 5 seconds. Continue to observe the output of `kubectl get pods`. You will see both pods are no longer ready. During this process, the readiness probe for the `ping` microservice will also fail. Observe it’s no longer in the ready state either.
 ````
-$ curl -X POST http://[hostname]:31000/api/name/unhealthy
-Application NameService is now unhealthy...
-$ curl -X POST http://[hostname]:31000/api/name/unhealthy
-Application NameService is now unhealthy...
+$ curl -X POST http://<Public_IP_Address>:31000/api/name/unhealthy
+Container name-deployment-6797df5b88-8ns8j is now unhealthy...
+$ curl -X POST http://<Public_IP_Address>:31000/api/name/unhealthy
+Container name-deployment-6797df5b88-bgn2m is now unhealthy...
 ````
 First, both `name` pods will no longer be ready because the readiness probe failed.
 ````
 $ kubectl get pods
 NAME                               READY     STATUS    RESTARTS   AGE
-name-deployment-694c7b74f7-hcf4q   0/1       Running   0          5m
-name-deployment-694c7b74f7-lrlf7   0/1       Running   0          5m
-ping-deployment-cf8f564c6-nctcr    1/1       Running   0          5m
+name-deployment-6797df5b88-8ns8j   0/1       Running   0          17m
+name-deployment-6797df5b88-bgn2m   0/1       Running   0          17m
+ping-deployment-685445548f-9nlw8   1/1       Running   0          17m
 ````
 Next, the `ping` pod is no longer ready because the readiness probe failed. The probe failed because `name-service` is now unavailable.
 ````
 $ kubectl get pods
 NAME                               READY     STATUS    RESTARTS   AGE
-name-deployment-694c7b74f7-hcf4q   0/1       Running   0          6m
-name-deployment-694c7b74f7-lrlf7   0/1       Running   0          6m
-ping-deployment-cf8f564c6-nctcr    0/1       Running   0          6m
+name-deployment-6797df5b88-8ns8j   0/1       Running   0          18m
+name-deployment-6797df5b88-bgn2m   0/1       Running   0          19m
+ping-deployment-685445548f-9nlw8   0/1       Running   0          19m
 ````
 
 Then, the `name` pods will start to recover.
@@ -529,19 +513,24 @@ Then, the `name` pods will start to recover.
 ````
 $ kubectl get pods
 NAME                               READY     STATUS    RESTARTS   AGE
-name-deployment-694c7b74f7-hcf4q   1/1       Running   0          6m
-name-deployment-694c7b74f7-lrlf7   0/1       Running   0          6m
-ping-deployment-cf8f564c6-nctcr    0/1       Running   0          6m
-```
+name-deployment-6797df5b88-8ns8j   1/1       Running   0          20m
+name-deployment-6797df5b88-bgn2m   0/1       Running   0          20m
+ping-deployment-685445548f-9nlw8   0/1       Running   0          20m
+````
 Finally, you will see all of the pods have recovered.
 
-```
+````
 $ kubectl get pods
+
 NAME                               READY     STATUS    RESTARTS   AGE
-name-deployment-694c7b74f7-hcf4q   1/1       Running   0          6m
-name-deployment-694c7b74f7-lrlf7   1/1       Running   0          6m
-ping-deployment-cf8f564c6-nctcr    1/1       Running   0          6m
-```
+name-deployment-6797df5b88-8ns8j   1/1       Running   0          22m
+name-deployment-6797df5b88-bgn2m   1/1       Running   0          22m
+ping-deployment-685445548f-9nlw8   1/1       Running   0          22m
+````
+
+# Congratulations
+
+You have successfully created and installed a microservice application with healthcheck functionality. Application deployed in Kubernetes became auto healing and can handle real life failures.
 
 
 

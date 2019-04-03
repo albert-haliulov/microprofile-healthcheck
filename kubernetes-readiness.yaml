@@ -19,6 +19,14 @@ spec:
         image: registry.eu-de.bluemix.net/microprofile/name:1.0
         ports:
         - containerPort: 9080
+        # name probe
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 9080
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          failureThreshold: 1
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -43,6 +51,14 @@ spec:
         env:
         - name: NAME_HOSTNAME
           value: name-service
+        # ping probe
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 9081
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          failureThreshold: 1
 ---
 apiVersion: v1
 kind: Service
