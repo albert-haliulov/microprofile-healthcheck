@@ -127,7 +127,7 @@ Select directory with the `Name` project and click `Finish`:
 
 **Repeat the same steps for `Ping` project.**
 
-Finally we need to setup Facets in order to Eclipse IDE properly recognized our projects as a Java Web projects. You should set the following options for both projects:
+Finally we need to setup Facets in order to Eclipse IDE properly recognized our projects as Java Web projects. You should set the following options for both projects:
 
 ![Project build options st1](./images/project-build-options-step1.png)
 
@@ -443,7 +443,7 @@ services:
       - name-service
 ````
 
-We used version 3 notation: `https://docs.docker.com/compose/compose-file/`. As you can see, there are two services defined `name-service` and `ping-service` which will create from images `name:1.0` and `ping:1.0`.
+We used version 3 notation: `https://docs.docker.com/compose/compose-file/`. As you can see, there are two services defined `name-service` and `ping-service` which would be created from images `name:1.0` and `ping:1.0`.
 Ports mapped in the same way as you usually use with `docker run` command. 
 
 Open `io.openliberty.guides.ping.PingHealth` class which we created in previous steps. You can see the ConfigProperty `NAME_HOSTNAME`. This environment variable initialized by `name-service` in `docker-compose.yaml`:
@@ -455,7 +455,7 @@ public class PingHealth implements HealthCheck {
     private String hostname;
 ````
 
-At the bottom of `docker-compose.yaml` we used `depends_on`. It is express dependency between services. `docker-compose up` command starts services in dependency order. In our case, `name-service` are started before `ping-service`. 
+At the bottom of `docker-compose.yaml` we used `depends_on`. It is express dependency between services. `docker-compose up` command starts services in dependency order. In our case, `name-service` is started before `ping-service`. 
 
 Let's start it:
 
@@ -478,7 +478,7 @@ a814a31c2cbc        name:1.0            "/opt/ol/helpers/run…"   29 seconds ag
 
 Now you can play with microservices:
 
-Notice that our `name-service` responing as a container, not an application as was before. Check the application class `io.openliberty.guides.name.NameResource` to understand this behaviour. 
+Notice that our `name-service` responding as a container, not an application as it was before. Check the application class `io.openliberty.guides.name.NameResource` to understand such behaviour. 
 ````
 $ curl -X GET http://localhost:9080/api/name
 Hello! I'm container a814a31c2cbc
@@ -509,7 +509,7 @@ $ curl -X GET http://localhost:9081/health
 {"checks":[{"data":{},"name":"name-service","state":"DOWN"}],"outcome":"DOWN"}
 ````
 
-Wait 60 seconds in order to `name-service` returned from maintenance state and check health again:
+Wait 60 seconds in order to `name-service` return from maintenance state and check health again:
 ````
 $ curl -X GET http://localhost:9081/api/ping/name-service
 pong
