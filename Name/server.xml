@@ -1,4 +1,4 @@
-<server description="Sample Liberty server">
+<server description="Liberty Server for Name microservice">
 
     
     <featureManager>
@@ -14,5 +14,5 @@
 
     <applicationMonitor updateTrigger="mbean"/>
 
-    <webApplication contextRoot="api" id="name" location="name.war" name="name"/>
+    <webApplication contextRoot="api" id="Name" location="Name.war" name="Name"/>
 </server>

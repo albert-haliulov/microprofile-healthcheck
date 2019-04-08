@@ -34,11 +34,38 @@ Kubernetes provides liveness and readiness probes that are used to check the hea
     - Install CLI, create a private regristry, setup up created cluster envrironment.
     - You can use tutorial to do these steps: https://cloud.ibm.com/docs/containers?topic=containers-cs_cluster_tutorial#cs_cluster_tutorial
 
-## Getting started
 
-- Open Eclipse IDE:
+
+## Getting started 
+
+The two microservices you will work with are called `Name` and `Ping`. The `Name` microservice displays a brief greeting and its application name. The `Ping` microservice pings the `Name` microservice. The `Ping`  demonstrates how communication can be established between microservices. 
+
+The `Ping` microservice should only be healthy when `Name` is available. To add this check to the `/health` endpoint, you will create a class implementing the `HealthCheck` interface.
+
+**TASK 1. Download projects**
+
+Go to the directory where you want to clone repository from github.
+
+````
+$ cd /Users/albert/Projects/openliberty
+````
+
+You can use git to clone repository or download it directly from github: `https://github.com/albert-haliulov/microprofile-healthcheck`
+![Git repo](./images/git-repo.png)
+
+
+````
+$ git clone https://github.com/albert-haliulov/microprofile-healthcheck.git
+````
+
+**TASK 2. Open Eclipse IDE**
 
 ![Eclipse desktop icon](./images/eclipse-icon.png)
+
+Change Eclipse workspace to directory where you unpacked `microprofile-healtcheck`
+
+![Eclipse change workspace](./images/eclipse-workspace.png)
+
 
 Find and Install IBM Liberty Developer Tools for building and deploying JEE apps to OpenLiberty:
 
@@ -57,42 +84,175 @@ Find and Install IBM Liberty Developer Tools for building and deploying JEE apps
 
 - RESTART ECLIPSE
 
-## Configure Liberty runtime
+**TASK3. Create Liberty runtime**
 
+In order to run our applications we need to setup server runtime environment. For this we need to install OpenLiberty and set it as a runtime environment in Eclipse workspace.
 
-## Download and Import projects into your workspace
+Open menu Eclipse->Preferences and type 'Runtime Environments' in search field:
 
-You can use git to clone repository or download it directly from github: `https://github.com/albert-haliulov/microprofile-healthcheck`
-![Git repo](./images/git-repo.png)
+![New server runtime st1](./images/target-runtime-liberty-step1.png)
 
-````
-$ git clone https://github.com/albert-haliulov/microprofile-healthcheck.git
-Cloning into 'microprofile-healthcheck'...
-remote: Enumerating objects: 76, done.
-remote: Counting objects: 100% (76/76), done.
-remote: Compressing objects: 100% (49/49), done.
-remote: Total 76 (delta 9), reused 76 (delta 9), pack-reused 0
-Unpacking objects: 100% (76/76), done.
-````
-Change Eclipse workspace to directory where you unpacked `microprofile-healtcheck` repo: File->Switch Workspace->Other
+Then click `Add..` button to create new runtime, select `Liberty` from the list and click `Next` button:
 
-![Eclipse change workspace](./images/eclipse-workspace.png)
+![New server runtime st2](./images/target-runtime-liberty-step2.png)
 
-And import eclipse artifactes from project.zip file:
+Check radio button `Install from an archive or a repoitory`, others keep unchanged and click `Next` button:
+
+![New server runtime st3](./images/target-runtime-liberty-step3.png)
+
+Enter the `destination path` where you want to install OpenLiberty, set the path to the previously donwloaded `openliberty-XXXXXX.zip` package and click `Finish` button:
+
+![New server runtime st4](./images/target-runtime-liberty-step4.png)
+
+As a result it has to show that openliberty successfully installed. Click `OK`:
+
+![New server runtime st5](./images/target-runtime-liberty-step5.png)
+
+You will see created `Liberty Runtime`, click `Apply and Close`.
+![New server runtime st6](./images/target-runtime-liberty-step6.png)
+
+**TASK4. Import projects into Eclipse workspace**
+
+Use menu `File->Import`:
+
 ![Import arctifacts STEP1](./images/import-project-st1.png)
+
+Select `General->Existing Projects into Workspace`:
 
 ![Import arctifacts STEP1](./images/import-project-st2.png)
 
+Select directory with the `Name` project and click `Finish`:
+
 ![Import arctifacts STEP1](./images/import-project-st3.png)
 
-## Adding a health check to the ping microservice
+**Repeat the same steps for `Ping` project.**
+
+Finally we need to setup Facets in order to Eclipse IDE properly recognized our projects as a Java Web projects. You should set the following options for both projects:
+
+![Project build options st1](./images/project-build-options-step1.png)
+
+![Project build options st1](./images/project-build-options-step2.png)
+
+**TASK5. Deploy microservices.**
+
+Create server for `Name` microservice `Click this link to create a new server`:
+
+![Deploy app step1](./images/deploy-app-st1.png)
+
+Set the name for the server `Liberty Server for Name`:
+
+![Deploy app step2](./images/deploy-app-st2.png)
+
+Set serer name to `name`, click `Finish`
+![Deploy app step3](./images/deploy-app-st3.png)
+
+Repeat the same steps to create server for `Ping` microservice.
+
+![Deploy app step4](./images/deploy-app-st4.png)
+
+Click `New` to create new server:
+
+![Deploy app step5](./images/deploy-app-st5.png)
+
+Set server name `ping` and `Finish`:
+
+![Deploy app step6](./images/deploy-app-st6.png)
+
+And again click `Finish`:
+![Deploy app step7](./images/deploy-app-st7.png)
+
+Now you are ready to deploy microservices into these servers:
+![Deploy app step8](./images/deploy-app-st8.png)
+
+
+Right click on `Liberty Server for Name` and select menu item `Add and Remove...`:
+
+![Deploy app step9](./images/deploy-app-st9.png)
+
+Select on the left side `Name` microservice and click `Add >` button. After `Finish` it will deploy `Name` microservice:
+
+![Deploy app step10](./images/deploy-app-st10.png)
+
+**Repeat the same steps for `Liberty Server for Ping` and `Ping` microservice.**
+
+**TASK6. Configure Liberty servers.**
+
+Explore the already prepared Liberty configuration for each of microservices -`server.xml`:
+````
+<server description="Liberty Server for Name microservice">
+    
+    <featureManager>
+    	<feature>jaxrs-2.1</feature>
+        <feature>cdi-2.0</feature>
+    	<feature>mpHealth-1.0</feature>
+        <feature>localConnector-1.0</feature>
+    </featureManager>
+
+    <httpEndpoint host="*" httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint"/>
+
+    <applicationManager autoExpand="true"/>
+
+    <applicationMonitor updateTrigger="mbean"/>
+
+    <webApplication contextRoot="api" id="Name" location="Name.war" name="Name"/>
+</server>
+````
+````
+<server description="Liberty Server for Ping microservice">
+    
+    <featureManager>
+    	<feature>jaxrs-2.1</feature>
+        <feature>cdi-2.0</feature>
+    	<feature>mpRestClient-1.0</feature>
+    	<feature>mpConfig-1.2</feature>
+    	<feature>mpHealth-1.0</feature>
+        <feature>localConnector-1.0</feature>
+    </featureManager>
+
+    <httpEndpoint host="*" httpPort="9081" httpsPort="9444" id="defaultHttpEndpoint"/>
+
+    <applicationManager autoExpand="true"/>
+
+    <applicationMonitor updateTrigger="mbean"/>
+
+    <webApplication contextRoot="api" id="Ping" location="Ping.war" name="Ping"/>
+</server>
+````
+
+We used `api` as a web `Context Root` for both microservices. `HTTP Listener` port `9080` and `HTTPS Listener` port `9443` for `Liberty Server for Name`. `9081` & `9444` for `Liberty Server for Ping`. To access these servers from a remote client added a host attribute `host="*"`. 
+
+Update `server.xml` of both servers by the supplied files from the root of each application folder. 
+
+Open Liberty configuration and update it: 
+
+![Deploy app step12](./images/deploy-app-st11.png)
+
+**Don't forget to change `server.xml` in second server.**
+
+**TASK7. Invoke microservices.**
+
+Start application servers `Liberty Server for Name` and `Liberty Server for Ping`:
+
+![Start application server](./images/test-app-st1.png)
+
+Invoke `Name` microservice:
+````
+$ curl -X GET http://localhost:9080/api/name
+Hello! I'm application NameService
+````
+
+The `Ping` microservice uses `<hostname>` parameter from the invocation URL `http://localhost:9081/api/ping/<hostname>` to call `Name` microservice by `http://<hostname>:9080/api/name`. If `Name` is available then `Ping` replies `pong`:
+````
+$ curl -X GET http://localhost:9081/api/ping/localhost
+pong
+````
+
+## Adding a health check to the `Ping` microservice
  
-The two microservices you will work with are called `name` and `ping`. The `name` microservice displays a brief greeting and the name of the container that it runs in. The `ping` microservice pings the Kubernetes Service that encapsulates the pod running the `name` microservice. The `ping` microservice demonstrates how communication can be established between pods inside a cluster.
+The `Ping` microservice should only be healthy when `Name` is available. To add this check to the `/health` endpoint, let's create a class implementing the `HealthCheck` interface.
 
-The `ping` microservice should only be healthy when `name` is available. To add this check to the `/health` endpoint, you will create a class implementing the `HealthCheck` interface.
-
->Create PingHealth class.
-io/openliberty/guides/ping/PingHealth.java
+>Create class PingHealth.
+`io/openliberty/guides/ping/PingHealth.java`
 ````
 package io.openliberty.guides.ping;
 
@@ -146,25 +306,11 @@ public class PingHealth implements HealthCheck {
 }
 ````
 
-## Build applications Name and Ping
+## Play with microservices
 
-By default all projects build automatically:
+This health check verifies that the `Name` microservice is available at `http://localhost:9081/api/name`. If it’s available, then it returns an `UP` status. Similarly, if it’s unavailable then it returns a `DOWN` status. When the status is `DOWN` the microservice is considered to be unhealthy.
 
-![Build Automatically](./images/app-build-automatically.png)
-
-We need to export web applications in order to deploy and to use in further steps. Do it for both applications.
-
-![Export application as a WAR file STEP1](./images/app-export-warfile-st1.png)
-
-Save file inside the appropriate application folder. Use `name.war` for Name app, `ping.war` for Ping application. Check box `Overwrite existing file` if the file with same name exists.
-
-![Export application as a WAR file STEP2](./images/app-export-warfile-st2.png)
-
-## Play with app
-
-This health check verifies that the `name` microservice is available at `http://localhost:9081/api`. If it’s available, then it returns an `UP` status. Similarly, if it’s unavailable then it returns a `DOWN` status. When the status is `DOWN` the microservice is considered to be unhealthy.
-
-The health check for the `name` microservice has already been implemented. It has been setup to become unhealthy for 60 seconds when a specific endpoint is called. This endpoint has been provided for you to observe the results of an unhealthy pod and how Kubernetes reacts.
+The health check for the `Name` microservice has already been implemented. It has been setup to become unhealthy for 60 seconds when a specific endpoint is called - `http://localhost:9080/api/name/unhealthy`. This endpoint has been provided for you to observe the results of an unhealthy pod.
 
 
 ````
@@ -206,15 +352,24 @@ ERROR: Service is currently in maintenance.
 $ curl -X GET http://localhost:9081/health
 {"checks":[{"data":{},"name":"localhost","state":"DOWN"}],"outcome":"DOWN"}
 ````
+## Export microservices as WAR files
+
+We need to export microservices in order to containerize them:
+
+![Export application as a WAR file STEP1](./images/app-export-warfile-st1.png)
+
+Save WAR file to the `bin` folder of each project. If `bin` doesn't exist then create it. Use `Name.war` for `Name` microservice, `Ping.war` for `Ping`. Check box `Overwrite existing file` if file with the same name exists.
+
+![Export application as a WAR file STEP2](./images/app-export-warfile-st2.png)
 
 ## Build docker images
 
-We supplied Dockerfiles for creating `name` and `ping` images. They are located in the application folders. Explore one of them:
+We supplied Dockerfiles for creating `Name` and `Ping` images. They are located in the application folders. Explore one of them:
 ````
 FROM open-liberty
 
 COPY --chown=1001:0 server.xml /config
-COPY --chown=1001:0 *.war /config/apps/name.war
+COPY --chown=1001:0 *.war /config/apps/Name.war
 ````
 
 Build `name:1.0` image:
@@ -261,13 +416,13 @@ ping                                     1.0                 fea53a6caf11       
 
 Now we are ready for the next step - run containers.
 
-## Run & Play with docker containers
+## Run & Play with Docker containers
 
-Run docker containers from prepared images with `name` and `ping` services. In order to start containes we will use `docker-compose`.
+Run docker containers from prepared images with `Name` and `Ping` services. In order to start containes we will use `docker-compose`.
 
 Docker Compose is a tool for defining and running multi-container Docker applications. It uses YAML files to configure the application's services and performs the creation and start-up process of all the containers with a single command.
 
-Look at `docker-compose.yaml`:
+Look at supplied `docker-compose.yaml`:
 
 ````
 version: '3'
@@ -288,10 +443,10 @@ services:
       - name-service
 ````
 
-We used version 3 notation: `https://docs.docker.com/compose/compose-file/`. As you can see, there are two services defined `name-service` and `ping-service` which will be created from our docker images `name:1.0` and `ping:1.0`.
-Ports mapped in the same manner as you usually use with `docker run` command. 
+We used version 3 notation: `https://docs.docker.com/compose/compose-file/`. As you can see, there are two services defined `name-service` and `ping-service` which will create from images `name:1.0` and `ping:1.0`.
+Ports mapped in the same way as you usually use with `docker run` command. 
 
-If you open `io.openliberty.guides.ping.PingHealth` class which we created in previous steps, you can see the ConfigProperty `NAME_HOSTNAME`. This environment variable initialized by `name-service` which is the name of service.
+Open `io.openliberty.guides.ping.PingHealth` class which we created in previous steps. You can see the ConfigProperty `NAME_HOSTNAME`. This environment variable initialized by `name-service` in `docker-compose.yaml`:
 
 ````
 public class PingHealth implements HealthCheck {
@@ -300,7 +455,7 @@ public class PingHealth implements HealthCheck {
     private String hostname;
 ````
 
-And at the bottom of `docker-compose.yaml` we used `depends_on`. It is express dependency between services. `docker-compose up` command starts services in dependency order. In our case, `name-service` are started before `ping-service`. 
+At the bottom of `docker-compose.yaml` we used `depends_on`. It is express dependency between services. `docker-compose up` command starts services in dependency order. In our case, `name-service` are started before `ping-service`. 
 
 Let's start it:
 
@@ -311,7 +466,7 @@ Creating microprofile-healthcheck_name-service_1_7e0ffbcdc769 ... done
 Creating microprofile-healthcheck_ping-service_1_12e3084076cd ... done
 ````
 
-Check that the contaners have been started:
+Check that contaners have been started:
 
 ````
 $ docker ps
@@ -321,7 +476,7 @@ a814a31c2cbc        name:1.0            "/opt/ol/helpers/run…"   29 seconds ag
 
 ````
 
-Now you can play with our services:
+Now you can play with microservices:
 
 Notice that our `name-service` responing as a container, not an application as was before. Check the application class `io.openliberty.guides.name.NameResource` to understand this behaviour. 
 ````
@@ -335,7 +490,7 @@ $ curl -X GET http://localhost:9081/api/ping/name-service
 pong
 ````
 
-And check the healthcheck stuff. Does it work in containers before deploy to kubernetes?
+And check the healthcheck stuff:
 
 ````
 $ curl -X GET http://localhost:9080/health
@@ -365,9 +520,9 @@ curl -X GET http://localhost:9081/health
 
 We have done it. 
 
-Let's deploy it to Kubernetes and check readinessProbe how it can handle healthcheck of our services.
+Let's deploy it to Kubernetes and check readinessProbe how it can handle healthcheck of our microservices.
 
-## Creating cluster and preparing your environment for deployment
+## Creating cluster and preparing environment for deployment
 
 If you have not created K8s cluster yet - now it's time to do that.  
 
@@ -426,7 +581,7 @@ pong
 
 Readiness probes are responsible for determining that your application is ready to accept requests. If it’s not ready, traffic won’t be routed to the container.
 
-Edit `kubernetes.yaml` to add readinessProbes as it shown below. Do these changes for both services. You should get content as in already prepared file `kubernetes-readiness.yaml`.
+Edit `kubernetes.yaml` to add readinessProbes as it shown below. Do these changes for both services. You should get content like from supplied file `kubernetes-readiness.yaml`.
 ````
       containers:
       - name: name-container

@@ -1,5 +1,4 @@
-<server description="Sample Liberty server">
-
+<server description="Liberty Server for Ping microservice">
     
     <featureManager>
     	<feature>jaxrs-2.1</feature>
@@ -16,5 +15,5 @@
 
     <applicationMonitor updateTrigger="mbean"/>
 
-    <webApplication contextRoot="api" id="ping" location="ping.war" name="ping"/>
+    <webApplication contextRoot="api" id="Ping" location="Ping.war" name="Ping"/>
 </server>
