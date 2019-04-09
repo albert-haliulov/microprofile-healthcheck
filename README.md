@@ -229,7 +229,7 @@ Open Liberty configuration and update it:
 
 **Don't forget to change `server.xml` in second server.**
 
-**TASK7. Invoke microservices.**
+**TASK 7. Invoke microservices.**
 
 Start application servers `Liberty Server for Name` and `Liberty Server for Ping`:
 
@@ -329,7 +329,7 @@ $ curl -X GET http://localhost:9080/health
 ````
 
 ````
-curl -X POST http://localhost:9080/api/name/unhealthy
+$ curl -X POST http://localhost:9080/api/name/unhealthy
 Application NameService is now unhealthy...
 ````
 
@@ -377,7 +377,7 @@ Build `name:1.0` image:
 ````
 $ cd Name/
 
-$ docker build -t name:1.0 .
+$ sudo docker build -t name:1.0 .
 Sending build context to Docker daemon  162.8kB
 Step 1/3 : FROM open-liberty
  ---> d447e301fe7c
@@ -393,7 +393,7 @@ Build `ping:1.0` image:
 ````
 $ cd Ping/
 
-$ docker build -t ping:1.0 .
+$ sudo docker build -t ping:1.0 .
 Sending build context to Docker daemon  1.163MB
 Step 1/3 : FROM open-liberty
  ---> d447e301fe7c
@@ -408,7 +408,7 @@ Successfully tagged ping:1.0
 Check for images have been created:
 
 ````
-$ docker images
+$ sudo docker images
 REPOSITORY                               TAG                 IMAGE ID            CREATED             SIZE
 name                                     1.0                 7c3773c712a7        16 hours ago        535MB
 ping                                     1.0                 fea53a6caf11        16 hours ago        535MB
@@ -460,7 +460,7 @@ At the bottom of `docker-compose.yaml` we used `depends_on`. It is express depen
 Let's start it:
 
 ````
-$ docker-compose up -d
+$ sudo docker-compose up -d
 Creating network "microprofile-healthcheck_default" with the default driver
 Creating microprofile-healthcheck_name-service_1_7e0ffbcdc769 ... done
 Creating microprofile-healthcheck_ping-service_1_12e3084076cd ... done
@@ -469,7 +469,7 @@ Creating microprofile-healthcheck_ping-service_1_12e3084076cd ... done
 Check that contaners have been started:
 
 ````
-$ docker ps
+$ sudo docker ps
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                                        NAMES
 89d9112eb276        ping:1.0            "/opt/ol/helpers/run…"   28 seconds ago      Up 26 seconds       9080/tcp, 9443/tcp, 0.0.0.0:9081->9081/tcp   microprofile-healthcheck_ping-service_1_36774b188a5b
 a814a31c2cbc        name:1.0            "/opt/ol/helpers/run…"   29 seconds ago      Up 27 seconds       0.0.0.0:9080->9080/tcp, 9443/tcp             microprofile-healthcheck_name-service_1_13efd498dbe0
@@ -518,7 +518,7 @@ curl -X GET http://localhost:9081/health
 {"checks":[{"data":{},"name":"name-service","state":"UP"}],"outcome":"UP"}
 ````
 
-We have done it. 
+YOU have done it!
 
 Let's deploy it to Kubernetes and check readinessProbe how it can handle healthcheck of our microservices.
 
